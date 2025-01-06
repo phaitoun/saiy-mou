@@ -1,0 +1,147 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model users {
+  user_id   String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email     String      @unique(map: "email_unique")
+  personal  personal[]
+  telephone telephone[]
+  tokens    tokens[]
+  wallpaper wallpaper[]
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model otp_codes {
+  otp_id     String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  otp_code   String
+  email      String
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  expires_at DateTime @db.Timestamptz(6)
+}
+
+model personal {
+  personal_id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                String
+  gender              String
+  date_of_birth       DateTime @db.Timestamptz(6)
+  occupation          String
+  relationship_status String
+  phone_number        String
+  user_id             String   @db.Uuid
+  password            String
+  users               users    @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "posernal_user_id_fkey")
+}
+
+model telephone {
+  telephone_id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tel                 String
+  date_of_birth       DateTime @db.Timestamptz(6)
+  description         String
+  description_love    String
+  disadvantage        String
+  user_id             String   @db.Uuid
+  description_EN      String?
+  description_love_EN String?
+  disadvantage_EN     String?
+  users               users    @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model wallpaper {
+  wallpaper_id  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  gender        String
+  price         Int
+  user_id       String   @db.Uuid
+  date_of_birth DateTime @db.Timestamptz(6)
+  day_of_birth  String
+  paid          Boolean
+  image_id      String   @db.Uuid
+  name          String
+  occupation    String
+  gods          String
+  tel           String
+  created_at    DateTime @default(now()) @db.Timestamptz(6)
+  users         users    @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model tokens {
+  token_id   String   @id(map: "token_pk") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  token      String   @unique(map: "unique_token")
+  expires_at DateTime @db.Date
+  user_id    String   @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  users      users    @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "user_id_fk")
+}
+
+model images {
+  image_id   String   @id(map: "Image_pkey") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  image_file Bytes
+}
+
+model coupon {
+  coupon_id   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code        String
+  discount    Int
+  expires_at  DateTime @db.Timestamptz(6)
+  isActive    Boolean
+  usage_limit Int
+  use_count   Int
+}
+
+model daily_horoscope {
+  daily_horoscope_id    String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  week_day              String?
+  lucky_number          String?
+  description_job       String?
+  description_money     String?
+  description_love      String?
+  description_health    String?
+  created_at            DateTime?   @db.Timestamptz(6)
+  logo_daily_id         String?     @db.Uuid
+  description_job_EN    String?
+  description_money_EN  String?
+  description_love_EN   String?
+  description_health_EN String?
+  logo_daily            logo_daily? @relation(fields: [logo_daily_id], references: [logo_daily_id], onDelete: NoAction, onUpdate: NoAction, map: "logo_id_foreign key")
+}
+
+model zodiac {
+  zodiac_id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  description_money    String?
+  progress_money       String?
+  description_job      String?
+  progress_job         String?
+  description_love     String?
+  progress_love        String?
+  lucky_number         String?
+  status               Int?
+  name                 String?
+  created_at           DateTime?     @db.Timestamptz(6)
+  zodiac_image_id      String?       @db.Uuid
+  description_money_EN String?
+  description_job_EN   String?
+  description_love_EN  String?
+  zodiac_image         zodiac_image? @relation(fields: [zodiac_image_id], references: [zodiac_image_id], onDelete: NoAction, onUpdate: NoAction, map: "zodiac_image_id")
+}
+
+model zodiac_image {
+  zodiac_image_id String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  zodiac_logo     Bytes?
+  star_zodiac     Bytes?
+  name            String?
+  zodiac          zodiac[]
+}
+
+model logo_daily {
+  logo_daily_id   String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  logo_file       Bytes?
+  week_day        String?
+  daily_horoscope daily_horoscope[]
+}
